@@ -38,26 +38,20 @@ textarea{min-height:230px;resize:vertical}label{font-size:13px;font-weight:600;d
 <section id="landing">
 <div class="hero"><h1>Tailor Your Resume to the Job</h1>
 <p>Turn your existing resume into a role-specific, ATS-friendly application. Upload your resume and job description. Our AI analyses the role, identifies what matters most, and intelligently tailors your resume around your real experience.</p>
-<button class="btn" onclick="go('input')">Tailor My Resume</button> <button class="btn sec" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See How It Works</button></div>
-<div class="grid g3" id="how"><div class="card"><h3>1. Upload your resume</h3><span class="mu">Paste or load a .txt file, then edit the text.</span></div><div class="card"><h3>2. Add the job description</h3><span class="mu">We rank requirements and keywords by importance.</span></div><div class="card"><h3>3. Get your tailored resume</h3><span class="mu">See every change, and why, before you download.</span></div></div>
-<div class="grid g2" style="margin-top:16px"><div class="card">✓ No fabricated experience<br>✓ ATS-friendly plain structure</div><div class="card">✓ Evidence-based tailoring<br>✓ Full control over edits</div></div>
-</section>
-
-<section id="input" class="hide">
-<div class="grid g2">
-<div class="card"><h3>Job Description</h3>
-<label>Job title</label><input id="jt" placeholder="Engineering Manager">
-<label>Company</label><input id="jc" placeholder="Example Company">
-<label>Location</label><input id="jl">
-<label>Additional instructions (optional)</label><input id="ji" placeholder="e.g. emphasise people leadership">
-<textarea id="jd" placeholder="Paste the job description…" oninput="cc()"></textarea>
-<div class="row"><span id="cnt" class="mu">0 characters</span><input type="file" accept=".txt,.md" onchange="load(this,'jd')" style="width:auto;margin:0"></div></div>
-<div class="card"><h3>Your Resume</h3>
-<textarea id="rs" style="min-height:410px" placeholder="Paste your resume. You can edit it before analysis."></textarea>
+<button class="btn" onclick="go()">Tailor My Resume</button> <button class="btn sec" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See How It Works</button></div>
+<div class="grid g3" id="how" style="align-items:start">
+<div class="card"><h3>1. Upload your resume</h3>
+<textarea id="rs" style="min-height:300px" placeholder="Paste your resume here, or load a .txt file. You can edit it before analysis."></textarea>
 <div class="row"><span class="mu">Only facts in this text will be used.</span><input type="file" accept=".txt,.md" onchange="load(this,'rs')" style="width:auto;margin:0"></div></div>
-</div>
-<p><button class="btn" id="go" onclick="run()">Analyse Role</button> <button class="btn sec" onclick="clr()">Clear</button></p>
-<div id="st" class="status hide"></div>
+<div class="card"><h3>2. Add the job description</h3>
+<textarea id="jd" style="min-height:300px" placeholder="Paste the job description here, or load a .txt file." oninput="cc()"></textarea>
+<div class="row"><span id="cnt" class="mu">0 characters</span><input type="file" accept=".txt,.md" onchange="load(this,'jd')" style="width:auto;margin:0"></div>
+<details><summary class="sm sans mu" style="cursor:pointer;margin:6px 0">Optional details</summary>
+<input id="jt" placeholder="Job title"><input id="jc" placeholder="Company"><input id="jl" placeholder="Location"><input id="ji" placeholder="Additional instructions (e.g. emphasise people leadership)"></details></div>
+<div class="card"><h3>3. Get your tailored resume</h3><p class="mu">We analyse the role, map it to your real experience and show every change.</p>
+<button class="btn" id="go" onclick="run()" style="width:100%">Analyse Role</button><p><button class="btn sec" onclick="clr()" style="width:100%">Clear</button></p>
+<div id="st" class="status hide"></div></div></div>
+<div class="grid g2" style="margin-top:16px"><div class="card">✓ No fabricated experience<br>✓ ATS-friendly plain structure</div><div class="card">✓ Evidence-based tailoring<br>✓ Full control over edits</div></div>
 </section>
 
 <section id="out" class="hide">
@@ -70,7 +64,7 @@ textarea{min-height:230px;resize:vertical}label{font-size:13px;font-weight:600;d
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let S={reqs:[],before:[],after:{},resume:null,changes:[],issues:[],confirmed:{},text:''};
-function go(v){$('landing').classList.toggle('hide',v!=='input');$('input').classList.toggle('hide',v!=='input')}
+function go(){$('how').scrollIntoView({behavior:'smooth'});$('rs').focus({preventScroll:true})}
 function cc(){$('cnt').textContent=$('jd').value.length.toLocaleString()+' characters'}
 function load(el,t){const f=el.files[0];if(!f)return;if(!/\.(txt|md)$/i.test(f.name)){alert('This build reads .txt/.md only. Paste PDF/DOCX text instead.');return}f.text().then(x=>{$(t).value=x;cc()})}
 function clr(){['jt','jc','jl','ji','jd','rs'].forEach(i=>$(i).value='');cc()}
@@ -114,11 +108,11 @@ const CATS=['responsibilities','technical','leadership','domain','qualifications
 function bars(fn){return CATS.map(c=>{const s=score(fn,c);return s===null?'':`<div class="row"><span style="text-transform:capitalize">${c}</span><b>${s}%</b></div><div class="bar"><i style="width:${s}%"></i></div>`}).join('')}
 function tag(s){const l={strong:'Strong Match',partial:'Partial Match',missing:'Evidence Missing',none:'Not a Match'}[s]||s;return`<span class="tag ${s}">${l}</span>`}
 function show(){
- $('input').classList.add('hide');$('out').classList.remove('hide');
+ $('landing').classList.add('hide');$('out').classList.remove('hide');
  $('tabs').innerHTML=[['match','Match Analysis'],['gaps','Gap Analysis'],['changes','What Changed'],['resume','Tailored Resume']].map(([k,l])=>`<button data-k="${k}" onclick="tab('${k}')">${l}</button>`).join('')+'<button onclick="back()">← Edit inputs</button>';
  render();tab(S.cur||'match');
 }
-function back(){$('out').classList.add('hide');$('input').classList.remove('hide')}
+function back(){$('out').classList.add('hide');$('landing').classList.remove('hide')}
 function tab(k){S.cur=k;['match','gaps','changes','resume'].forEach(x=>$('t-'+x).classList.toggle('hide',x!==k));document.querySelectorAll('#tabs button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))}
 function render(){
  const b=score(before),a=score(after);
