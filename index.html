@@ -71,8 +71,16 @@ function clr(){['jt','jc','jl','ji','jd','rs'].forEach(i=>$(i).value='');cc()}
 function status(m,e){const s=$('st');s.classList.remove('hide');s.className='status'+(e?' err':'');s.textContent=m}
 
 /* ---- Provider abstraction: swap this object to change LLM backend ---- */
-const provider={async json(system,data,onText){const sample=await claude.use('sample');if(!sample)throw new Error('AI access unavailable. Open this page in claude.ai and grant access.');
- return sample.json(system+'\nReturn ONLY valid JSON, no prose or fences.\nINPUT:\n'+JSON.stringify(data),{cache:false})}};
+const provider={async json(system,data){
+ const full=system+'\nReturn ONLY valid JSON, no prose or fences.\nINPUT:\n'+JSON.stringify(data);
+ // 1) claude.ai artifact runtime, if present
+ if(typeof claude!=='undefined'&&claude&&claude.use){const sample=await claude.use('sample');if(sample)return sample.json(full,{cache:false})}
+ // 2) server-side route (Vercel function) using ANTHROPIC_API_KEY
+ let res;try{res=await fetch('/api/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full})})}catch(e){throw new Error('Cannot reach /api/complete. Deploy with the api/ folder or open in claude.ai.')}
+ let j={};try{j=await res.json()}catch(e){}
+ if(!res.ok)throw new Error(j.error||('AI request failed ('+res.status+'). Is ANTHROPIC_API_KEY set on the server?'));
+ const t=String(j.text||'').replace(/^```(?:json)?\s*|\s*```$/g,'').trim();
+ try{return JSON.parse(t)}catch(e){const m=t.match(/[\[{][\s\S]*[\]}]/);if(m)return JSON.parse(m[0]);throw new Error('Model returned invalid JSON. Please retry.')}}};
 
 const RULES='Never invent employers, titles, dates, degrees, certifications, technologies, projects, team sizes, budgets, metrics or achievements. Do not alter titles or dates. Do not upgrade participation to ownership. Keep quantified achievements. No inflated adjectives. No keyword stuffing. Use JD terminology only where it accurately reflects existing evidence.';
 
@@ -140,6 +148,6 @@ function toText(r){const h=r.header||{};const L=[];const H=t=>{L.push('',t.toUpp
  if((r.education||[]).length){H('Education');r.education.forEach(x=>L.push(x))}
  if((r.certifications||[]).length){H('Certifications');r.certifications.forEach(x=>L.push(x))}
  return L.join('\n').replace(/\n{3,}/g,'\n\n').trim()}
-async function dl(){const d=await claude.use('downloads');if(!d){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([S.text]));a.download='tailored-resume.txt';a.click();return}
+async function dl(){const d=(typeof claude!=='undefined'&&claude&&claude.use)?await claude.use('downloads'):null;if(!d){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([S.text]));a.download='tailored-resume.txt';a.click();return}
  try{await d.save({filename:'tailored-resume.txt',data:new Blob([S.text],{type:'text/plain'})})}catch(e){}}
 </script></body></html>

@@ -18,13 +18,18 @@ Self-contained HTML/CSS/JavaScript (`index.html`). AI calls go through a single 
 Open `index.html` in a browser. No install or build step. AI features rely on the Claude artifact runtime (`claude.use("sample")`); outside it, replace `provider.json()` with a call to your own backend.
 
 ## Environment variables
-None are required by the current code. If you add a backend provider, copy the template and supply your own credentials:
+| Name | Purpose |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | Required for AI features outside claude.ai. Set it in Vercel: Project Settings, Environment Variables. |
+| `ANTHROPIC_MODEL` | Optional model override. |
+
+For local development with `vercel dev`:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Never commit real credentials.
+Then add your own key. Never commit real credentials.
 
-## Commands
-No development, build or test commands yet.
+## Deployment
+Deploy on Vercel with no build step. `api/complete.js` makes the server-side AI call. Inside claude.ai the app uses the artifact runtime instead.

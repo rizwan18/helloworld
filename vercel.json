@@ -1,0 +1,1 @@
+{ "functions": { "api/complete.js": { "maxDuration": 60 } } }
