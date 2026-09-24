@@ -31,5 +31,8 @@ cp .env.example .env.local
 
 Then add your own key. Never commit real credentials.
 
+## API key without server configuration
+Outside claude.ai, each user pastes their own Anthropic API key into step 3. It is stored in that browser (localStorage) and sent only to api.anthropic.com. Never hardcode a key in this repo: it is public and any key shipped in the page can be read by anyone.
+
 ## Deployment
 Deploy on Vercel with no build step. `api/complete.js` makes the server-side AI call. Inside claude.ai the app uses the artifact runtime instead.

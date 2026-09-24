@@ -49,6 +49,7 @@ textarea{min-height:230px;resize:vertical}label{font-size:13px;font-weight:600;d
 <details><summary class="sm sans mu" style="cursor:pointer;margin:6px 0">Optional details</summary>
 <input id="jt" placeholder="Job title"><input id="jc" placeholder="Company"><input id="jl" placeholder="Location"><input id="ji" placeholder="Additional instructions (e.g. emphasise people leadership)"></details></div>
 <div class="card"><h3>3. Get your tailored resume</h3><p class="mu">We analyse the role, map it to your real experience and show every change.</p>
+<label>Anthropic API key</label><input id="ak" type="password" autocomplete="off" placeholder="sk-ant-… (stays in this browser)" oninput="saveKey()"><p class="mu sm sans" style="margin-top:0">Only needed outside claude.ai. Saved in your browser, sent only to Anthropic, never to this site or its repo.</p>
 <button class="btn" id="go" onclick="run()" style="width:100%">Analyse Role</button><p><button class="btn sec" onclick="clr()" style="width:100%">Clear</button></p>
 <div id="st" class="status hide"></div></div></div>
 <div class="grid g2" style="margin-top:16px"><div class="card">✓ No fabricated experience<br>✓ ATS-friendly plain structure</div><div class="card">✓ Evidence-based tailoring<br>✓ Full control over edits</div></div>
@@ -75,12 +76,21 @@ const provider={async json(system,data){
  const full=system+'\nReturn ONLY valid JSON, no prose or fences.\nINPUT:\n'+JSON.stringify(data);
  // 1) claude.ai artifact runtime, if present
  if(typeof claude!=='undefined'&&claude&&claude.use){const sample=await claude.use('sample');if(sample)return sample.json(full,{cache:false})}
- // 2) server-side route (Vercel function) using ANTHROPIC_API_KEY
- let res;try{res=await fetch('/api/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full})})}catch(e){throw new Error('Cannot reach /api/complete. Deploy with the api/ folder or open in claude.ai.')}
+ // 2) user's own key, kept in this browser only, calling Anthropic directly
+ const key=getKey();
+ if(key){let r;try{r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-5',max_tokens:8000,messages:[{role:'user',content:full}]})})}catch(e){throw new Error('Could not reach Anthropic. Check your connection.')}
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error((d.error&&d.error.message)||('Anthropic error '+r.status+'. Check your API key.'));
+  return parseJ((d.content||[]).map(c=>c.text||'').join(''))}
+ // 3) optional server route
+ let res;try{res=await fetch('/api/complete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full})})}catch(e){res=null}
+ if(!res||res.status===404||res.status===405)throw new Error('Enter your Anthropic API key in step 3 to use the AI features.');
  let j={};try{j=await res.json()}catch(e){}
  if(!res.ok)throw new Error(j.error||('AI request failed ('+res.status+'). Is ANTHROPIC_API_KEY set on the server?'));
- const t=String(j.text||'').replace(/^```(?:json)?\s*|\s*```$/g,'').trim();
- try{return JSON.parse(t)}catch(e){const m=t.match(/[\[{][\s\S]*[\]}]/);if(m)return JSON.parse(m[0]);throw new Error('Model returned invalid JSON. Please retry.')}}};
+ return parseJ(j.text)}};
+function parseJ(x){const t=String(x||'').replace(/^```(?:json)?\s*|\s*```$/g,'').trim();try{return JSON.parse(t)}catch(e){const m=t.match(/[\[{][\s\S]*[\]}]/);if(m)return JSON.parse(m[0]);throw new Error('Model returned invalid JSON. Please retry.')}}
+function getKey(){const v=$('ak')&&$('ak').value.trim();if(v)return v;try{return localStorage.getItem('rm_key')||''}catch(e){return ''}}
+function saveKey(){try{localStorage.setItem('rm_key',$('ak').value.trim())}catch(e){}}
+try{window.addEventListener('DOMContentLoaded',()=>{try{$('ak').value=localStorage.getItem('rm_key')||''}catch(e){}})}catch(e){}
 
 const RULES='Never invent employers, titles, dates, degrees, certifications, technologies, projects, team sizes, budgets, metrics or achievements. Do not alter titles or dates. Do not upgrade participation to ownership. Keep quantified achievements. No inflated adjectives. No keyword stuffing. Use JD terminology only where it accurately reflects existing evidence.';
 
