@@ -46,8 +46,7 @@ textarea{min-height:230px;resize:vertical}label{font-size:13px;font-weight:600;d
 <div class="card"><h3>2. Add the job description</h3>
 <textarea id="jd" style="min-height:300px" placeholder="Paste the job description here, or load a .txt file." oninput="cc()"></textarea>
 <div class="row"><span id="cnt" class="mu">0 characters</span><input type="file" accept=".txt,.md" onchange="load(this,'jd')" style="width:auto;margin:0"></div>
-<details><summary class="sm sans mu" style="cursor:pointer;margin:6px 0">Optional details</summary>
-<input id="jt" placeholder="Job title"><input id="jc" placeholder="Company"><input id="jl" placeholder="Location"><input id="ji" placeholder="Additional instructions (e.g. emphasise people leadership)"></details></div>
+<input id="ji" placeholder="Additional instructions (optional), e.g. emphasise people leadership" style="margin-top:8px"></div>
 <div class="card"><h3>3. Get your tailored resume</h3><p class="mu">We analyse the role, map it to your real experience and show every change.</p>
 <label>Anthropic API key</label><input id="ak" type="password" autocomplete="off" placeholder="sk-ant-… (stays in this browser)" oninput="saveKey()"><p class="mu sm sans" style="margin-top:0">Only needed outside claude.ai. Saved in your browser, sent only to Anthropic, never to this site or its repo.</p>
 <button class="btn" id="go" onclick="run()" style="width:100%">Analyse Role</button><p><button class="btn sec" onclick="clr()" style="width:100%">Clear</button></p>
@@ -68,7 +67,7 @@ let S={reqs:[],before:[],after:{},resume:null,changes:[],issues:[],confirmed:{},
 function go(){$('how').scrollIntoView({behavior:'smooth'});$('rs').focus({preventScroll:true})}
 function cc(){$('cnt').textContent=$('jd').value.length.toLocaleString()+' characters'}
 function load(el,t){const f=el.files[0];if(!f)return;if(!/\.(txt|md)$/i.test(f.name)){alert('This build reads .txt/.md only. Paste PDF/DOCX text instead.');return}f.text().then(x=>{$(t).value=x;cc()})}
-function clr(){['jt','jc','jl','ji','jd','rs'].forEach(i=>$(i).value='');cc()}
+function clr(){['ji','jd','rs'].forEach(i=>$(i).value='');cc()}
 function status(m,e){const s=$('st');s.classList.remove('hide');s.className='status'+(e?' err':'');s.textContent=m}
 
 /* ---- Provider abstraction: swap this object to change LLM backend ---- */
@@ -105,7 +104,7 @@ async function run(){
   await tailor(rs);
  }catch(e){status('Error: '+(e.message||e.code||e),1);$('go').disabled=false}
 }
-function jobMeta(){return{title:$('jt').value,company:$('jc').value,location:$('jl').value,instructions:$('ji').value}}
+function jobMeta(){return{instructions:$('ji').value}}
 async function tailor(rs,fix){
   const conf=Object.keys(S.confirmed).filter(k=>S.confirmed[k]).map(k=>S.reqs.find(r=>r.id==k).text);
   status(fix?'Regenerating affected sections…':'Stage C/D — planning strategy and rewriting…');
