@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ResumeMatch AI</title>
+<style>
+:root{--bg:#f7f8fa;--card:#fff;--tx:#14181f;--mu:#5d6675;--bd:#e3e6ec;--ac:#1f4fd8;--ok:#1a7f4b;--wa:#b26a00;--er:#b42318;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#181c25;--tx:#eef0f4;--mu:#9aa3b2;--bd:#2a303c;--ac:#6c92ff;--ok:#4cc38a;--wa:#e0a64a;--er:#f2766b}}
+:root[data-theme="dark"]{--bg:#0f1218;--card:#181c25;--tx:#eef0f4;--mu:#9aa3b2;--bd:#2a303c;--ac:#6c92ff;--ok:#4cc38a;--wa:#e0a64a;--er:#f2766b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 Georgia,'Times New Roman',serif}
+h1,h2,h3,button,label,.sans{font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:20px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:8px 0 24px}
+.logo{font:700 18px -apple-system,Helvetica,sans-serif}.logo b{color:var(--ac)}
+.hero{text-align:center;padding:36px 0 28px}.hero h1{font-size:clamp(30px,6vw,48px);margin:0 0 12px;line-height:1.1}
+.hero p{max-width:620px;margin:0 auto 22px;color:var(--mu);font-size:17px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:15px;font-weight:600;cursor:pointer}
+.btn.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn:disabled{opacity:.5;cursor:default}
+.btn.sm{padding:6px 12px;font-size:13px}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px}
+.card h3{margin:0 0 8px;font-size:16px}.mu{color:var(--mu)}.sm{font-size:13px}
+input,textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:9px 11px;font:inherit;margin-bottom:8px}
+textarea{min-height:230px;resize:vertical}label{font-size:13px;font-weight:600;display:block;margin-bottom:3px}
+.bar{height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.row{display:flex;justify-content:space-between;gap:10px;font:13px -apple-system,Helvetica,sans-serif;margin:10px 0 4px}
+.tag{display:inline-block;font:600 11px -apple-system,Helvetica,sans-serif;padding:2px 8px;border-radius:99px;border:1px solid currentColor;white-space:nowrap}
+.strong{color:var(--ok)}.partial{color:var(--wa)}.missing{color:var(--mu)}.none{color:var(--er)}
+.req{border-top:1px solid var(--bd);padding:10px 0}.req:first-child{border:0}
+.big{font:700 44px -apple-system,Helvetica,sans-serif}
+.hide{display:none}.tabs{display:flex;gap:6px;margin:16px 0;flex-wrap:wrap}
+.tabs button{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:99px;padding:6px 14px;cursor:pointer}.tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.status{padding:12px;border:1px dashed var(--bd);border-radius:8px;margin:12px 0;font:14px -apple-system,Helvetica,sans-serif}
+.err{color:var(--er)}.wide{overflow-x:auto}
+</style></head><body><main>
+<nav><div class="logo">Resume<b>Match</b> AI</div><span class="mu sm sans">Tailor your resume to the role — without compromising the truth.</span></nav>
+
+<section id="landing">
+<div class="hero"><h1>Tailor Your Resume to the Job</h1>
+<p>Turn your existing resume into a role-specific, ATS-friendly application. Upload your resume and job description. Our AI analyses the role, identifies what matters most, and intelligently tailors your resume around your real experience.</p>
+<button class="btn" onclick="go('input')">Tailor My Resume</button> <button class="btn sec" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">See How It Works</button></div>
+<div class="grid g3" id="how"><div class="card"><h3>1. Upload your resume</h3><span class="mu">Paste or load a .txt file, then edit the text.</span></div><div class="card"><h3>2. Add the job description</h3><span class="mu">We rank requirements and keywords by importance.</span></div><div class="card"><h3>3. Get your tailored resume</h3><span class="mu">See every change, and why, before you download.</span></div></div>
+<div class="grid g2" style="margin-top:16px"><div class="card">✓ No fabricated experience<br>✓ ATS-friendly plain structure</div><div class="card">✓ Evidence-based tailoring<br>✓ Full control over edits</div></div>
+</section>
+
+<section id="input" class="hide">
+<div class="grid g2">
+<div class="card"><h3>Job Description</h3>
+<label>Job title</label><input id="jt" placeholder="Engineering Manager">
+<label>Company</label><input id="jc" placeholder="Example Company">
+<label>Location</label><input id="jl">
+<label>Additional instructions (optional)</label><input id="ji" placeholder="e.g. emphasise people leadership">
+<textarea id="jd" placeholder="Paste the job description…" oninput="cc()"></textarea>
+<div class="row"><span id="cnt" class="mu">0 characters</span><input type="file" accept=".txt,.md" onchange="load(this,'jd')" style="width:auto;margin:0"></div></div>
+<div class="card"><h3>Your Resume</h3>
+<textarea id="rs" style="min-height:410px" placeholder="Paste your resume. You can edit it before analysis."></textarea>
+<div class="row"><span class="mu">Only facts in this text will be used.</span><input type="file" accept=".txt,.md" onchange="load(this,'rs')" style="width:auto;margin:0"></div></div>
+</div>
+<p><button class="btn" id="go" onclick="run()">Analyse Role</button> <button class="btn sec" onclick="clr()">Clear</button></p>
+<div id="st" class="status hide"></div>
+</section>
+
+<section id="out" class="hide">
+<div class="tabs" id="tabs"></div>
+<div id="t-match"></div><div id="t-gaps" class="hide"></div><div id="t-changes" class="hide"></div>
+<div id="t-resume" class="hide"></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S={reqs:[],before:[],after:{},resume:null,changes:[],issues:[],confirmed:{},text:''};
+function go(v){$('landing').classList.toggle('hide',v!=='input');$('input').classList.toggle('hide',v!=='input')}
+function cc(){$('cnt').textContent=$('jd').value.length.toLocaleString()+' characters'}
+function load(el,t){const f=el.files[0];if(!f)return;if(!/\.(txt|md)$/i.test(f.name)){alert('This build reads .txt/.md only. Paste PDF/DOCX text instead.');return}f.text().then(x=>{$(t).value=x;cc()})}
+function clr(){['jt','jc','jl','ji','jd','rs'].forEach(i=>$(i).value='');cc()}
+function status(m,e){const s=$('st');s.classList.remove('hide');s.className='status'+(e?' err':'');s.textContent=m}
+
+/* ---- Provider abstraction: swap this object to change LLM backend ---- */
+const provider={async json(system,data,onText){const sample=await claude.use('sample');if(!sample)throw new Error('AI access unavailable. Open this page in claude.ai and grant access.');
+ return sample.json(system+'\nReturn ONLY valid JSON, no prose or fences.\nINPUT:\n'+JSON.stringify(data),{cache:false})}};
+
+const RULES='Never invent employers, titles, dates, degrees, certifications, technologies, projects, team sizes, budgets, metrics or achievements. Do not alter titles or dates. Do not upgrade participation to ownership. Keep quantified achievements. No inflated adjectives. No keyword stuffing. Use JD terminology only where it accurately reflects existing evidence.';
+
+async function run(){
+ const jd=$('jd').value.trim(),rs=$('rs').value.trim();
+ if(jd.length<80||rs.length<80){status('Please provide both a job description and a resume.',1);return}
+ $('go').disabled=true;S.confirmed={};
+ try{
+  status('Stage A/B — analysing role and mapping evidence…');
+  const a=await provider.json(`You are a recruitment analyst. Analyse the job description and resume independently, then map each major JD requirement (12-20) to exact resume evidence. Output {"role":{"title","seniority","industry","employment","outcomes":[..]},"candidate":{"title","years","industries":[..]},"reqs":[{"id":"r1","text","category":"responsibilities|technical|leadership|domain|qualifications|keywords|achievements","importance":"high|medium|low","status":"strong|partial|missing|none","evidence":["verbatim resume quotes"],"note":"why"}]}. status: strong=clear evidence; partial=related/transferable; missing=no evidence in resume (NOT the same as not a match); none=clearly conflicts. Only quote evidence that really appears.`,{jd,resume:rs,job:jobMeta()});
+  S.a=a;S.reqs=a.reqs;S.before=a.reqs.map(r=>({id:r.id,status:r.status}));S.after={};
+  await tailor(rs);
+ }catch(e){status('Error: '+(e.message||e.code||e),1);$('go').disabled=false}
+}
+function jobMeta(){return{title:$('jt').value,company:$('jc').value,location:$('jl').value,instructions:$('ji').value}}
+async function tailor(rs,fix){
+  const conf=Object.keys(S.confirmed).filter(k=>S.confirmed[k]).map(k=>S.reqs.find(r=>r.id==k).text);
+  status(fix?'Regenerating affected sections…':'Stage C/D — planning strategy and rewriting…');
+  const r=await provider.json(`You are an executive resume writer. First decide a strategy (what to move up, compress, expand, which roles get more space), then rewrite the resume. ${RULES} Structure: header, targeted headline, professional summary (3-4 short paragraphs), grouped core capabilities (only source-supported), 5-8 career highlights, experience (4-7 bullets for highly relevant roles, 3-5 moderate, 1-3 older), education, certifications. Bullets: Action + Scope + Challenge + Outcome. Plain ATS-safe wording. Facts the user explicitly confirmed may be used: ${JSON.stringify(conf)}. Output {"header":{"name","location","phone","email","linkedin"},"headline","summary":[..],"capabilities":[{"group","items":[..]}],"highlights":[..],"experience":[{"company","title","dates","bullets":[..]}],"education":[..],"certifications":[..],"changes":[{"section","change","why"}]}.`,{analysis:S.a,requirements:S.reqs,resume:rs,job:jobMeta(),fix_issues:fix||[]});
+  S.resume=r;S.changes=r.changes||[];
+  status('Stage E — validating against source resume…');
+  const v=await provider.json(`You are an independent fact-checker. Compare the tailored resume to the SOURCE resume. Flag: unsupported claims, invented metrics/technologies, altered dates or titles, new employers, overstated seniority, participation claimed as ownership, keyword stuffing, dropped key achievements. Confirmed extra facts (allowed): ${JSON.stringify(conf)}. Also re-assess each requirement against the TAILORED resume. Output {"pass":bool,"issues":[{"severity":"high|low","section","problem"}],"after":[{"id","status":"strong|partial|missing|none"}]}.`,{source:rs,tailored:r,requirements:S.reqs.map(x=>({id:x.id,text:x.text}))});
+  S.issues=v.issues||[];S.after=Object.fromEntries((v.after||[]).map(x=>[x.id,x.status]));
+  const bad=S.issues.filter(i=>i.severity==='high');
+  if(!v.pass&&bad.length&&!fix){return tailor(rs,bad)}
+  S.text=toText(r);$('st').classList.add('hide');$('go').disabled=false;show();
+}
+const W={high:3,medium:2,low:1},V={strong:1,partial:.5,missing:0,none:0};
+function score(getSt,cat){let n=0,d=0;S.reqs.forEach(r=>{if(cat&&r.category!==cat)return;const w=W[r.importance]||1;d+=w;n+=w*(V[getSt(r)]??0)});return d?Math.round(100*n/d):null}
+const before=r=>S.confirmed[r.id]?'strong':r.status;
+const after=r=>S.confirmed[r.id]?'strong':(S.after[r.id]||r.status);
+const CATS=['responsibilities','technical','leadership','domain','qualifications','keywords','achievements'];
+function bars(fn){return CATS.map(c=>{const s=score(fn,c);return s===null?'':`<div class="row"><span style="text-transform:capitalize">${c}</span><b>${s}%</b></div><div class="bar"><i style="width:${s}%"></i></div>`}).join('')}
+function tag(s){const l={strong:'Strong Match',partial:'Partial Match',missing:'Evidence Missing',none:'Not a Match'}[s]||s;return`<span class="tag ${s}">${l}</span>`}
+function show(){
+ $('input').classList.add('hide');$('out').classList.remove('hide');
+ $('tabs').innerHTML=[['match','Match Analysis'],['gaps','Gap Analysis'],['changes','What Changed'],['resume','Tailored Resume']].map(([k,l])=>`<button data-k="${k}" onclick="tab('${k}')">${l}</button>`).join('')+'<button onclick="back()">← Edit inputs</button>';
+ render();tab(S.cur||'match');
+}
+function back(){$('out').classList.add('hide');$('input').classList.remove('hide')}
+function tab(k){S.cur=k;['match','gaps','changes','resume'].forEach(x=>$('t-'+x).classList.toggle('hide',x!==k));document.querySelectorAll('#tabs button[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===k))}
+function render(){
+ const b=score(before),a=score(after);
+ $('t-match').innerHTML=`<div class="grid g2"><div class="card"><h3>Before tailoring</h3><div class="big">${b}%</div>${bars(before)}</div><div class="card"><h3>After tailoring</h3><div class="big">${a}%</div>${bars(after)}</div></div>
+ <p class="mu sm sans">Role alignment is an internal indicator computed from the requirement-by-requirement evidence table below (weighted by importance). It is not an ATS score or a hiring probability.</p>
+ <div class="card"><h3>Evidence map</h3>${S.reqs.map(r=>`<div class="req"><div class="row" style="margin-top:0"><b>${esc(r.text)}</b>${tag(before(r))}</div><span class="mu sm">${esc(r.category)} · ${esc(r.importance)} priority</span>${(r.evidence||[]).map(e=>`<div class="sm">“${esc(e)}”</div>`).join('')}<div class="mu sm">${esc(r.note||'')}</div></div>`).join('')}</div>`;
+ const g=(s)=>S.reqs.filter(r=>before(r)===s);
+ $('t-gaps').innerHTML=`<div class="grid g2"><div class="card"><h3>Already demonstrated</h3>${g('strong').map(r=>`<div class="sm">• ${esc(r.text)}</div>`).join('')||'<span class="mu">—</span>'}</div>
+ <div class="card"><h3>Needs greater visibility</h3>${g('partial').map(r=>`<div class="sm">• ${esc(r.text)}</div>`).join('')||'<span class="mu">—</span>'}</div></div>
+ <div class="card" style="margin-top:16px"><h3>Potential gaps</h3><p class="mu sm sans">“Not mentioned” does not mean you lack the experience. If you genuinely have it, confirm below and regenerate; unconfirmed items are never added.</p>
+ ${S.reqs.filter(r=>r.status==='missing'||r.status==='none').map(r=>`<div class="req"><label style="font-weight:400"><input type="checkbox" style="width:auto;margin:0 8px 0 0" ${S.confirmed[r.id]?'checked':''} onchange="S.confirmed['${r.id}']=this.checked"> ${esc(r.text)} ${tag(r.status)}<br><span class="mu sm">I have this experience and it is accurate.</span></label></div>`).join('')||'<span class="mu">No gaps identified.</span>'}
+ <p><button class="btn" onclick="regen()">Regenerate with confirmations</button></p></div>`;
+ $('t-changes').innerHTML=`<div class="card"><h3>Changes and reasons</h3>${S.changes.map(c=>`<div class="req"><b class="sans">${esc(c.section)}</b><div>${esc(c.change)}</div><div class="mu sm">Why: ${esc(c.why)}</div></div>`).join('')}</div>
+ <div class="card" style="margin-top:16px"><h3>Validation</h3>${S.issues.length?S.issues.map(i=>`<div class="sm">${i.severity==='high'?'⚠':'•'} ${esc(i.section)}: ${esc(i.problem)}</div>`).join(''):'<span class="strong">✓ No unsupported claims, altered dates/titles or invented metrics detected.</span>'}</div>`;
+ $('t-resume').innerHTML=`<div class="card"><h3>Edit your tailored resume</h3><p class="mu sm sans">Plain-text, standard headings, ATS-safe. Edit freely, then download.</p><textarea id="fin" style="min-height:560px;font-family:ui-monospace,Menlo,monospace;font-size:13px" oninput="S.text=this.value">${esc(S.text)}</textarea>
+ <p><button class="btn" onclick="dl()">Download (.txt)</button> <button class="btn sec" onclick="regen()">Regenerate</button> <button class="btn sec" onclick="navigator.clipboard&&navigator.clipboard.writeText(S.text)">Copy</button></p><span class="mu sm sans">DOCX/PDF export is not in this build.</span></div>`;
+}
+async function regen(){back();try{$('go').disabled=true;await tailor($('rs').value.trim())}catch(e){status('Error: '+(e.message||e.code),1);$('go').disabled=false}}
+function toText(r){const h=r.header||{};const L=[];const H=t=>{L.push('',t.toUpperCase(),'')};
+ L.push(h.name||'',[h.location,h.phone,h.email,h.linkedin].filter(Boolean).join(' | '),'',r.headline||'');
+ H('Professional Summary');(r.summary||[]).forEach(p=>L.push(p,''));
+ H('Core Capabilities');(r.capabilities||[]).forEach(c=>L.push(c.group.toUpperCase()+': '+c.items.join(' | ')));
+ H('Career Highlights');(r.highlights||[]).forEach(x=>L.push('- '+x));
+ H('Professional Experience');(r.experience||[]).forEach(e=>{L.push('',e.title+' | '+e.company+' | '+e.dates);(e.bullets||[]).forEach(x=>L.push('- '+x))});
+ if((r.education||[]).length){H('Education');r.education.forEach(x=>L.push(x))}
+ if((r.certifications||[]).length){H('Certifications');r.certifications.forEach(x=>L.push(x))}
+ return L.join('\n').replace(/\n{3,}/g,'\n\n').trim()}
+async function dl(){const d=await claude.use('downloads');if(!d){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([S.text]));a.download='tailored-resume.txt';a.click();return}
+ try{await d.save({filename:'tailored-resume.txt',data:new Blob([S.text],{type:'text/plain'})})}catch(e){}}
+</script></body></html>
