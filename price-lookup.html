@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Security Price Lookup</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card-bg: #fff; --text: #1a1d23; --muted: #6b7280;
+    --border: #e2e4e9; --accent: #2563eb; --accent-hover: #1d4ed8;
+    --error-bg: #fef2f2; --error-border: #fecaca; --error-text: #b91c1c;
+    --stale-bg: #fffbeb; --stale-text: #92400e; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+  }
+  .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card {
+    width: 100%; max-width: 420px; background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .subtitle { margin: 0 0 20px; color: var(--muted); font-size: 0.9rem; }
+  .lookup-form label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+  .input-row { display: flex; gap: 8px; }
+  input#ticker-input {
+    flex: 1; min-width: 0; padding: 10px 12px; font-size: 1rem; border: 1px solid var(--border);
+    border-radius: 8px; text-transform: uppercase;
+  }
+  input#ticker-input:focus {
+    outline: 3px solid rgba(37,99,235,0.25); outline-offset: 1px; border-color: var(--accent);
+  }
+  button#submit-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px;
+    font-size: 0.95rem; font-weight: 600; color: #fff; background: var(--accent); border: none;
+    border-radius: 8px; cursor: pointer; white-space: nowrap;
+  }
+  button#submit-btn:hover:not(:disabled) { background: var(--accent-hover); }
+  button#submit-btn:focus-visible { outline: 3px solid rgba(37,99,235,0.4); outline-offset: 2px; }
+  button#submit-btn:disabled { opacity: 0.75; cursor: not-allowed; }
+  .spinner {
+    display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.5);
+    border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  button#submit-btn.loading .spinner { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hint { margin: 8px 0 0; font-size: 0.78rem; color: var(--muted); }
+  .field-error { margin: 8px 0 0; font-size: 0.85rem; color: var(--error-text); }
+  .status { margin-top: 16px; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; }
+  .status.loading { background: #eff6ff; color: #1e40af; }
+  .status.error { background: var(--error-bg); border: 1px solid var(--error-border); color: var(--error-text); }
+  .result { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .result-ticker { font-size: 0.85rem; font-weight: 700; letter-spacing: 0.02em; color: var(--muted); }
+  .result-price-row { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 6px; }
+  .result-label { font-size: 0.78rem; color: var(--muted); }
+  .result-price { font-size: 2rem; font-weight: 700; line-height: 1.2; }
+  .result-exchange { font-size: 0.85rem; color: var(--muted); text-align: right; }
+  .result-details { margin: 14px 0 0; display: grid; gap: 8px; }
+  .result-details div { display: flex; justify-content: space-between; font-size: 0.85rem; }
+  .result-details dt { color: var(--muted); }
+  .result-details dd { margin: 0; font-weight: 600; }
+  .stale-note {
+    margin: 12px 0 0; padding: 8px 10px; background: var(--stale-bg); color: var(--stale-text);
+    border-radius: 8px; font-size: 0.82rem;
+  }
+  .back-link { display: block; margin-top: 16px; font-size: 0.8rem; color: var(--muted); text-align: center; }
+  @media (max-width: 420px) {
+    .input-row { flex-direction: column; }
+    button#submit-btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <div class="card">
+      <h1>Security Price Lookup</h1>
+      <p class="subtitle">Enter a ticker to get the latest available price.</p>
+
+      <form id="lookup-form" class="lookup-form" novalidate>
+        <label for="ticker-input">Security Code</label>
+        <div class="input-row">
+          <input
+            id="ticker-input" name="ticker" type="text" placeholder="e.g. BHP.AX"
+            autocomplete="off" autocapitalize="characters" spellcheck="false"
+            aria-describedby="ticker-hint field-error"
+          />
+          <button id="submit-btn" type="submit">
+            <span class="btn-label">Get Price</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+        <p id="ticker-hint" class="hint">ASX example: BHP.AX, CBA.AX, CSL.AX &nbsp;&middot;&nbsp; US example: AAPL, MSFT</p>
+        <p id="field-error" class="field-error" role="alert" hidden></p>
+      </form>
+
+      <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+
+      <section id="result" class="result" hidden aria-live="polite">
+        <div class="result-ticker" id="result-ticker"></div>
+        <div class="result-price-row">
+          <div>
+            <div class="result-label">Latest Price</div>
+            <div class="result-price" id="result-price"></div>
+          </div>
+          <div class="result-exchange" id="result-exchange"></div>
+        </div>
+        <dl class="result-details">
+          <div>
+            <dt>As of</dt>
+            <dd id="result-timestamp"></dd>
+          </div>
+          <div id="result-prevclose-row" hidden>
+            <dt>Previous Close</dt>
+            <dd id="result-prevclose"></dd>
+          </div>
+        </dl>
+        <p id="result-stale-note" class="stale-note" hidden>
+          Market is currently closed &mdash; showing the last available price.
+        </p>
+      </section>
+
+      <a class="back-link" href="./index.html">&larr; Back to ResumeMatch AI</a>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const form = document.getElementById('lookup-form');
+      const input = document.getElementById('ticker-input');
+      const fieldError = document.getElementById('field-error');
+      const submitBtn = document.getElementById('submit-btn');
+      const statusEl = document.getElementById('status');
+      const resultEl = document.getElementById('result');
+      const resultTicker = document.getElementById('result-ticker');
+      const resultPrice = document.getElementById('result-price');
+      const resultExchange = document.getElementById('result-exchange');
+      const resultTimestamp = document.getElementById('result-timestamp');
+      const resultPrevCloseRow = document.getElementById('result-prevclose-row');
+      const resultPrevClose = document.getElementById('result-prevclose');
+      const resultStaleNote = document.getElementById('result-stale-note');
+
+      const TICKER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9.\-^]{0,14}$/;
+      let inFlightController = null;
+
+      function setFieldError(message) {
+        if (message) {
+          fieldError.textContent = message;
+          fieldError.hidden = false;
+          input.setAttribute('aria-invalid', 'true');
+        } else {
+          fieldError.textContent = '';
+          fieldError.hidden = true;
+          input.removeAttribute('aria-invalid');
+        }
+      }
+
+      function setStatus(mode, message) {
+        if (!mode) {
+          statusEl.hidden = true; statusEl.className = 'status'; statusEl.textContent = '';
+          return;
+        }
+        statusEl.hidden = false;
+        statusEl.className = `status ${mode}`;
+        statusEl.textContent = message;
+      }
+
+      function setLoading(isLoading) {
+        submitBtn.disabled = isLoading;
+        submitBtn.classList.toggle('loading', isLoading);
+      }
+
+      function formatPrice(price, currency) {
+        const num = Number(price).toFixed(2);
+        return currency ? `$${num} ${currency}` : `$${num}`;
+      }
+
+      function formatTimestamp(iso) {
+        if (!iso) return 'Time not provided by data source';
+        const date = new Date(iso);
+        if (Number.isNaN(date.getTime())) return 'Time not provided by data source';
+        return new Intl.DateTimeFormat(undefined, {
+          day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+        }).format(date);
+      }
+
+      function showResult(data) {
+        resultTicker.textContent = data.ticker;
+        resultPrice.textContent = formatPrice(data.price, data.currency);
+        resultExchange.textContent = data.exchange || '';
+        resultTimestamp.textContent = formatTimestamp(data.timestamp);
+        if (data.previousClose !== null && data.previousClose !== undefined) {
+          resultPrevClose.textContent = formatPrice(data.previousClose, data.currency);
+          resultPrevCloseRow.hidden = false;
+        } else {
+          resultPrevCloseRow.hidden = true;
+        }
+        resultStaleNote.hidden = !data.isStale;
+        resultEl.hidden = false;
+      }
+
+      function hideResult() { resultEl.hidden = true; }
+
+      async function lookupPrice(ticker) {
+        if (inFlightController) inFlightController.abort();
+        inFlightController = new AbortController();
+        const response = await fetch(`/api/price?ticker=${encodeURIComponent(ticker)}`, { signal: inFlightController.signal });
+        let body = null;
+        try { body = await response.json(); } catch {}
+        if (!response.ok) {
+          const message = (body && body.error) || `Unable to retrieve the latest price for ${ticker}. Please check the security code and try again.`;
+          throw new Error(message);
+        }
+        return body;
+      }
+
+      async function handleSubmit(event) {
+        event.preventDefault();
+        const rawValue = input.value.trim();
+        const ticker = rawValue.toUpperCase();
+
+        setFieldError(''); setStatus(null); hideResult();
+
+        if (!ticker) { setFieldError('Please enter a security code.'); input.focus(); return; }
+        if (!TICKER_PATTERN.test(ticker)) {
+          setFieldError('That doesn\u2019t look like a valid security code (e.g. BHP.AX, AAPL).');
+          input.focus();
+          return;
+        }
+
+        setLoading(true);
+        setStatus('loading', `Looking up ${ticker}\u2026`);
+
+        try {
+          const data = await lookupPrice(ticker);
+          setStatus(null);
+          showResult(data);
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          setStatus('error', err.message || 'Something went wrong. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      form.addEventListener('submit', handleSubmit);
+      input.addEventListener('input', () => { if (!fieldError.hidden) setFieldError(''); });
+    })();
+  </script>
+</body>
+</html>

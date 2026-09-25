@@ -36,3 +36,13 @@ Outside claude.ai, each user pastes their own Anthropic API key into step 3. It 
 
 ## Deployment
 Deploy on Vercel with no build step. `api/complete.js` makes the server-side AI call. Inside claude.ai the app uses the artifact runtime instead.
+
+## Utility: Security Price Lookup
+A small standalone tool at `price-lookup.html`: enter a ticker (e.g. `BHP.AX`, `AAPL`) and get its latest available price.
+
+- **Frontend**: `price-lookup.html` — self-contained HTML/CSS/JS, same pattern as `index.html`.
+- **Backend**: `GET /api/price?ticker=BHP.AX` (`api/price.js`), which calls the isolated provider integration in `lib/marketDataService.js`.
+- **Provider**: Yahoo Finance's free, unofficial "chart" endpoint — no API key needed. The call is made server-side only (the endpoint has no CORS headers and this also keeps the integration swappable — see comments in `lib/marketDataService.js` for how to point it at a different, key-based provider later).
+- Handles empty/invalid tickers, not-found securities, timeouts, rate limits and provider outages with clear messages; never fabricates a price or shows stale data without saying so (a "market is currently closed" note appears when applicable).
+
+Open `price-lookup.html` directly (once deployed) or via `vercel dev` locally; no extra environment variables are required for the default provider.
